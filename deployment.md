@@ -63,15 +63,32 @@ git push heroku main
 3. **Timeouts**: Some platforms have 30-second timeouts - consider this for large scraping jobs
 4. **Storage**: Scraped files are temporary - consider adding cloud storage for persistence
 
+## Streamlit Cloud (NEW - Easiest for Python!)
+
+**Perfect for Python apps with UI:**
+
+1. Push your code to GitHub
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Connect your GitHub repo
+4. Select `streamlit_app.py` as the main file
+5. Deploy!
+
+Run locally with:
+```bash
+streamlit run streamlit_app.py
+```
+
 ## Cost Comparison
 
-| Platform | Free Tier | Paid Starting Price |
-|----------|-----------|-------------------|
-| Railway | $5 credit/month | $5/month |
-| Render | 750 hours/month | $7/month |
-| Fly.io | 3 shared VMs | $1.94/month |
-| Google Cloud Run | 2M requests/month | Pay per use |
-| PythonAnywhere | 1 web app | $5/month |
+| Platform | Free Tier | Paid Starting Price | Best For |
+|----------|-----------|-------------------|----------|
+| Streamlit Cloud | Unlimited public apps | $0 | Python apps with UI |
+| Railway | $5 credit/month | $5/month | Full-stack apps |
+| Render | 750 hours/month | $7/month | Web services |
+| Fly.io | 3 shared VMs | $1.94/month | Global apps |
+| Google Cloud Run | 2M requests/month | Pay per use | Scalable APIs |
+| PythonAnywhere | 1 web app | $5/month | Python only |
+| Vercel | Unlimited | $20/month | Next.js/React |
 
 ## Security Considerations
 
