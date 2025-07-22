@@ -151,6 +151,10 @@ def run_scraper(session, url, rate_limit, max_pages):
         # Save summary
         scraper.save_summary(urls, scraper.scraped_count)
         
+        # Create combined markdown
+        if scraper.scraped_count > 0:
+            scraper.create_combined_markdown()
+        
     except Exception as e:
         session.status = "error"
         session.error = str(e)
@@ -214,4 +218,6 @@ if __name__ == '__main__':
     os.makedirs('templates', exist_ok=True)
     os.makedirs('static', exist_ok=True)
     
-    app.run(debug=True, port=5000)
+    # Get port from environment variable (for cloud deployment) or use 8080
+    port = int(os.environ.get('PORT', 8080))
+    app.run(debug=False, host='0.0.0.0', port=port)

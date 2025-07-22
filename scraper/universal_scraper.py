@@ -324,6 +324,10 @@ class UniversalDocsScraper:
         
         # Save scraping summary
         self.save_summary(urls_to_scrape, success_count)
+        
+        # Create combined markdown file
+        if success_count > 0:
+            self.create_combined_markdown()
     
     def save_summary(self, urls: List[str], success_count: int):
         """Save a summary of the scraping session"""
@@ -340,6 +344,55 @@ class UniversalDocsScraper:
         summary_file = self.output_dir / 'scraping_summary.json'
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2)
+    
+    def create_combined_markdown(self):
+        """Create a single markdown file with all scraped content"""
+        self.logger.info("Creating combined markdown file...")
+        
+        combined_file = self.output_dir / 'COMBINED_DOCUMENTATION.md'
+        
+        with open(combined_file, 'w', encoding='utf-8') as combined:
+            # Write header
+            combined.write(f"""# Combined Documentation - {self.base_url}
+
+Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+Total files: {len(list(self.output_dir.glob('*.md')))}
+
+---
+
+""")
+            
+            # Sort markdown files for consistent ordering
+            md_files = sorted([f for f in self.output_dir.glob('*.md') 
+                              if f.name not in ['COMBINED_DOCUMENTATION.md', 'README.md']])
+            
+            for i, md_file in enumerate(md_files, 1):
+                try:
+                    with open(md_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    
+                    # Extract title from content or use filename
+                    title = md_file.stem.replace('_', ' ').title()
+                    if content.startswith('---'):
+                        # Try to extract title from frontmatter
+                        lines = content.split('\n')
+                        for line in lines[1:]:
+                            if line.startswith('---'):
+                                break
+                            if line.startswith('title:'):
+                                title = line.replace('title:', '').strip().strip('"\'')
+                    
+                    combined.write(f"\n\n{'='*80}\n")
+                    combined.write(f"## [{i}] {title}\n")
+                    combined.write(f"Source: {md_file.name}\n")
+                    combined.write(f"{'='*80}\n\n")
+                    combined.write(content)
+                    combined.write("\n\n")
+                    
+                except Exception as e:
+                    self.logger.error(f"Error adding {md_file} to combined file: {e}")
+        
+        self.logger.info(f"✅ Combined markdown saved as COMBINED_DOCUMENTATION.md")
 
 
 def main():
