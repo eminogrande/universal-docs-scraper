@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies (gcc for any wheels that may need compilation)
+RUN apt-get update && apt-get install -y \
+    gcc git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the full app (AI backend, templates, and helpers)
+COPY . .
+
+# Expose Flask port
+EXPOSE 8080
+
+# Default command runs the AI-enhanced Flask app
+CMD ["python", "app_ai.py"]

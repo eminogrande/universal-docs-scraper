@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en" data-color-mode="light" data-light-theme="light" data-dark-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Documentation Scraper · GitHub Style</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/19.8.0/build.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11.10.1/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --color-canvas-default: #ffffff;
+            --color-canvas-subtle: #f6f8fa;
+            --color-canvas-inset: #f0f3f6;
+            --color-fg-default: #1F2328;
+            --color-fg-muted: #656d76;
+            --color-fg-subtle: #8c959f;
+            --color-border-default: #d1d9e0;
+            --color-border-muted: #d8dee4;
+            --color-neutral-muted: rgba(175,184,193,0.2);
+            --color-accent-fg: #0969da;
+            --color-accent-emphasis: #0969da;
+            --color-success-fg: #1a7f37;
+            --color-success-emphasis: #2da44e;
+            --color-attention-fg: #9a6700;
+            --color-attention-emphasis: #bf8700;
+            --color-danger-fg: #d1242f;
+            --color-danger-emphasis: #cf222e;
+            --color-done-fg: #8250df;
+            --color-done-emphasis: #8250df;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-canvas-default: #0d1117;
+                --color-canvas-subtle: #161b22;
+                --color-canvas-inset: #010409;
+                --color-fg-default: #e6edf3;
+                --color-fg-muted: #8b949e;
+                --color-fg-subtle: #6e7681;
+                --color-border-default: #30363d;
+                --color-border-muted: #21262d;
+                --color-neutral-muted: rgba(110,118,129,0.1);
+                --color-accent-fg: #58a6ff;
+                --color-accent-emphasis: #1f6feb;
+                --color-success-fg: #3fb950;
+                --color-success-emphasis: #2ea043;
+                --color-attention-fg: #d29922;
+                --color-attention-emphasis: #bb8009;
+                --color-danger-fg: #f85149;
+                --color-danger-emphasis: #da3633;
+                --color-done-fg: #a371f7;
+                --color-done-emphasis: #8957e5;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            font-size: 16px; /* Increased base font size */
+            line-height: 1.6;
+            color: var(--color-fg-default);
+            background-color: var(--color-canvas-default);
+        }
+
+        /* GitHub Header */
+        .Header {
+            background-color: var(--color-canvas-subtle);
+            padding: 16px;
+            border-bottom: 1px solid var(--color-border-default);
+        }
+        
+        /* Force light theme overrides (placed after dark media query so it wins) */
+        :root {
+            --color-canvas-default: #ffffff;
+            --color-canvas-subtle: #f6f8fa;
+            --color-canvas-inset: #f0f3f6;
+            --color-fg-default: #1F2328;
+            --color-fg-muted: #656d76;
+            --color-fg-subtle: #8c959f;
+            --color-border-default: #d1d9e0;
+            --color-border-muted: #d8dee4;
+            --color-neutral-muted: rgba(175,184,193,0.2);
+            --color-accent-fg: #0969da;
+            --color-accent-emphasis: #0969da;
+            --color-success-fg: #1a7f37;
+            --color-success-emphasis: #2da44e;
+            --color-attention-fg: #9a6700;
+            --color-attention-emphasis: #bf8700;
+            --color-danger-fg: #d1242f;
+            --color-danger-emphasis: #cf222e;
+            --color-done-fg: #8250df;
+            --color-done-emphasis: #8250df;
+        }
+
+        .Header-item {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .Header-link {
+            font-weight: 600;
+            color: var(--color-fg-default);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .octicon {
+            fill: currentColor;
+            display: inline-block;
+            vertical-align: text-bottom;
+        }
+
+        /* Main Container */
+        .container-xl {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 16px;
+        }
+
+        .repository-content {
+            padding: 24px 0;
+        }
+
+        /* GitHub Style Tabs */
+        .UnderlineNav {
+            display: flex;
+            min-height: 48px;
+            border-bottom: 1px solid var(--color-border-default);
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .UnderlineNav-body {
+            display: flex;
+            gap: 0;
+        }
+
+        .UnderlineNav-item {
+            padding: 0 16px;
+            font-size: 14px;
+            line-height: 30px;
+            color: var(--color-fg-default);
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+        }
+
+        .UnderlineNav-item:hover {
+            color: var(--color-fg-default);
+            border-bottom-color: var(--color-border-muted);
+        }
+
+        .UnderlineNav-item.selected {
+            border-bottom-color: var(--color-accent-emphasis);
+            font-weight: 600;
+        }
+
+        .Counter {
+            padding: 0 6px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 18px;
+            color: var(--color-fg-default);
+            background-color: var(--color-neutral-muted);
+            border-radius: 20px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* GitHub Box */
+        .Box {
+            background-color: var(--color-canvas-default);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+        }
+
+        .Box-header {
+            padding: 16px;
+            background-color: var(--color-canvas-subtle);
+            border-bottom: 1px solid var(--color-border-default);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .Box-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .Box-body {
+            padding: 16px;
+        }
+
+        /* Form Elements */
+        .form-control {
+            padding: 5px 12px;
+            font-size: 14px;
+            line-height: 20px;
+            color: var(--color-fg-default);
+            background-color: var(--color-canvas-default);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--color-accent-emphasis);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .form-checkbox {
+            margin-right: 8px;
+        }
+
+        /* GitHub Buttons */
+        .btn {
+            padding: 5px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            border: 1px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            color: white;
+            background-color: var(--color-success-emphasis);
+            border-color: var(--color-success-emphasis);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-success-fg);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-default {
+            color: var(--color-fg-default);
+            background-color: var(--color-canvas-subtle);
+            border-color: var(--color-border-default);
+        }
+
+        .btn-default:hover {
+            background-color: var(--color-canvas-inset);
+        }
+
+        .btn-block {
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Progress */
+        .Progress {
+            height: 8px;
+            background-color: var(--color-border-default);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .Progress-item {
+            height: 100%;
+            background-color: var(--color-success-emphasis);
+            transition: width 0.3s;
+        }
+
+        /* Flash Messages */
+        .flash {
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .flash-success {
+            color: var(--color-success-fg);
+            background-color: var(--color-success-subtle);
+            border: 1px solid var(--color-success-muted);
+        }
+
+        .flash-error {
+            color: var(--color-danger-fg);
+            background-color: var(--color-danger-subtle);
+            border: 1px solid var(--color-danger-muted);
+        }
+
+        /* Timeline */
+        .TimelineItem {
+            display: flex;
+            padding: 16px 0;
+            position: relative;
+        }
+
+        .TimelineItem:before {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 16px;
+            width: 2px;
+            content: "";
+            background-color: var(--color-border-muted);
+        }
+
+        .TimelineItem:last-child:before {
+            display: none;
+        }
+
+        .TimelineItem-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--color-canvas-subtle);
+            border: 2px solid var(--color-border-default);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            position: relative;
+        }
+
+        .TimelineItem-badge--success {
+            background-color: var(--color-success-emphasis);
+            border-color: var(--color-success-emphasis);
+            color: white;
+        }
+
+        .TimelineItem-body {
+            flex: 1;
+            margin-left: 16px;
+        }
+
+        /* Blankslate */
+        .blankslate {
+            text-align: center;
+            padding: 32px;
+        }
+
+        .blankslate-icon {
+            color: var(--color-fg-muted);
+            margin-bottom: 8px;
+        }
+
+        .blankslate h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .blankslate p {
+            color: var(--color-fg-muted);
+            margin-bottom: 16px;
+        }
+
+        /* Code */
+        .code-block {
+            background-color: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 16px;
+            font-family: "SF Mono", Monaco, Consolas, monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+
+        /* Stats */
+        .stats-row {
+            display: flex;
+            gap: 24px;
+            margin: 16px 0;
+        }
+
+        .stat-item {
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--color-fg-default);
+        }
+
+        .stat-label {
+            color: var(--color-fg-muted);
+            font-size: 12px;
+        }
+
+        /* Mermaid Container */
+        .mermaid-container {
+            background: var(--color-canvas-subtle);
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            padding: 24px;
+            margin: 24px 0;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            text-align: center;
+        }
+
+        /* Select menu */
+        .SelectMenu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .SelectMenu-button {
+            position: relative;
+            padding: 5px 16px;
+            padding-right: 32px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 20px;
+            border: 1px solid var(--color-border-default);
+            border-radius: 6px;
+            background-color: var(--color-canvas-subtle);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .SelectMenu-caret {
+            position: absolute;
+            right: 8px;
+            pointer-events: none;
+        }
+
+        /* Label */
+        .Label {
+            display: inline-block;
+            padding: 0 7px;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 18px;
+            border-radius: 20px;
+            background-color: var(--color-accent-emphasis);
+            color: white;
+        }
+
+        .Label--success {
+            background-color: var(--color-success-emphasis);
+        }
+
+        .Label--attention {
+            background-color: var(--color-attention-emphasis);
+        }
+
+        /* Branch name */
+        .branch-name {
+            padding: 2px 6px;
+            font-family: "SF Mono", Monaco, Consolas, monospace;
+            font-size: 12px;
+            background-color: var(--color-accent-subtle);
+            color: var(--color-accent-fg);
+            border-radius: 6px;
+        }
+
+        /* Layout */
+        .Layout {
+            display: flex;
+            gap: 24px;
+        }
+
+        .Layout-sidebar {
+            width: 296px;
+            flex-shrink: 0;
+        }
+
+        .Layout-main {
+            flex: 1;
+            min-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header (icon removed) -->
+    <div class="Header">
+        <div class="Header-item">
+            <div class="Header-link" style="gap:0">
+                <span>AI Documentation Scraper</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xl">
+        <div class="repository-content">
+            <!-- Navigation Tabs -->
+            <nav class="UnderlineNav" aria-label="Repository">
+                <div class="UnderlineNav-body">
+                    <button class="UnderlineNav-item selected" data-tab="scraper">
+                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"/>
+                        </svg>
+                        Scraper
+                    </button>
+                    <button class="UnderlineNav-item" data-tab="flow">
+                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M1.5 1.75a.75.75 0 00-1.5 0v12.5c0 .414.336.75.75.75h14.5a.75.75 0 000-1.5H1.5V1.75zm14.28 2.53a.75.75 0 00-1.06-1.06L10 7.94 7.53 5.47a.75.75 0 00-1.06 0L3.22 8.72a.75.75 0 001.06 1.06L7 7.06l2.47 2.47a.75.75 0 001.06 0l5.25-5.25z"/>
+                        </svg>
+                        Architecture
+                        <span class="Counter">3</span>
+                    </button>
+                    <button class="UnderlineNav-item" data-tab="models">
+                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M8.22 1.754a.25.25 0 00-.44 0L1.698 13.132a.25.25 0 00.22.368h12.164a.25.25 0 00.22-.368L8.22 1.754zm-1.763-.707c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0114.082 15H1.918a1.75 1.75 0 01-1.543-2.575L6.457 1.047zM9 11a1 1 0 11-2 0 1 1 0 012 0zm-.25-5.25a.75.75 0 00-1.5 0v2.5a.75.75 0 001.5 0v-2.5z"/>
+                        </svg>
+                        Models
+                        <span class="Counter" id="modelCount">0</span>
+                    </button>
+                    <button class="UnderlineNav-item" data-tab="history">
+                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                            <path d="M1.643 3.143L.427 1.927A.25.25 0 000 2.104V5.75c0 .138.112.25.25.25h3.646a.25.25 0 00.177-.427L2.715 4.215a6.5 6.5 0 11-1.18 4.458.75.75 0 10-1.493.154 8.001 8.001 0 101.6-5.684zM7.75 4a.75.75 0 01.75.75v2.992l2.028.812a.75.75 0 01-.557 1.392l-2.5-1A.75.75 0 017 8.25v-3.5A.75.75 0 017.75 4z"/>
+                        </svg>
+                        History
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Tab Content: Scraper -->
+            <div class="tab-content active" id="scraper-tab">
+                <div class="Layout">
+                    <div class="Layout-main">
+                        <div class="Box">
+                            <div class="Box-header">
+                                <h3 class="Box-title">AI-Enhanced Documentation Scraper</h3>
+                            </div>
+                            <div class="Box-body">
+                                <form id="scraperForm">
+                                    <div class="form-group">
+                                        <label class="form-label" for="url">
+                                            Documentation URL
+                                        </label>
+                                        <input type="url" class="form-control" id="url" 
+                                               placeholder="https://api-business.wirexpaychain.tech/docs" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="apiKey">
+                                            API Key
+                                            <span class="Label Label--attention">Required for AI</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="apiKey" 
+                                               placeholder="sk-... or sk-or-..." value="{{ api_key }}">
+                                        <p style="font-size: 12px; color: var(--color-fg-muted); margin-top: 4px;">
+                                            Add <code class="branch-name">?api_key=YOUR_KEY</code> to URL to pre-fill
+                                        </p>
+                                        <div style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                                            <button type="button" class="btn" id="testAiBtn" style="background: var(--color-accent-emphasis); color: white;">
+                                                <svg class="octicon" width="16" height="16" viewBox="0 0 16 16" style="vertical-align: text-bottom; margin-right:4px;">
+                                                    <path d="M7.75 1a.75.75 0 01.75.75V3h2.5a.75.75 0 010 1.5H8.5v2.5a.75.75 0 01-1.5 0V4.5H4.5a.75.75 0 010-1.5H7V1.75A.75.75 0 017.75 1z"/>
+                                                </svg>
+                                                Test AI
+                                            </button>
+                                            <span id="testAiResult" style="font-size: 12px; color: var(--color-fg-muted);"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="model">AI Model (OpenRouter)</label>
+                                        <select class="form-control" id="model">
+                                            <option disabled selected>Loading models…</option>
+                                        </select>
+                                        <small style="color: var(--color-fg-muted); margin-top: 4px;">
+                                            Recommended: Qwen 2.5 Coder (free) for technical docs
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group" style="display: flex; gap: 16px;">
+                                        <label style="display: flex; align-items: center;">
+                                            <input type="checkbox" class="form-checkbox" id="useAI" checked>
+                                            <span>Use AI for diagrams (OpenRouter)</span>
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-block" id="scrapeBtn">
+                                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M7.75 0a.75.75 0 01.75.75V3h3.634c.414 0 .814.147 1.13.414l2.07 1.75a1.75 1.75 0 010 2.672l-2.07 1.75a1.75 1.75 0 01-1.13.414H8.5v2.25a.75.75 0 11-1.5 0V10H2.75A1.75 1.75 0 011 8.25v-3.5C1 3.784 1.784 3 2.75 3H7V.75A.75.75 0 017.75 0zm0 8.5h4.384a.25.25 0 00.161-.06l2.07-1.75a.25.25 0 000-.38l-2.07-1.75a.25.25 0 00-.161-.06H2.75a.25.25 0 00-.25.25v3.5c0 .138.112.25.25.25h5z"/>
+                                        </svg>
+                                        Start Scraping
+                                    </button>
+                                </form>
+
+                                <!-- Progress Section -->
+                                <div id="progressSection" style="display: none; margin-top: 24px;">
+                                    <h4 style="margin-bottom: 8px;">Processing...</h4>
+                                    <div class="Progress">
+                                        <span class="Progress-item" id="progressBar" style="width: 0%;"></span>
+                                    </div>
+                                    
+                                    <div class="Box" style="margin-top: 16px;">
+                                        <div class="Box-header">
+                                            <h4 class="Box-title">Logs</h4>
+                                        </div>
+                                        <div class="Box-body">
+                                            <div id="logs" style="font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Result Section -->
+                                <div id="resultSection" style="display: none; margin-top: 24px;">
+                                    <div class="flash flash-success">
+                                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>
+                                        </svg>
+                                        Documentation scraped successfully!
+                                    </div>
+
+                                    <div class="stats-row">
+                                        <div class="stat-item">
+                                            <div class="stat-value" id="sectionsCount">0</div>
+                                            <div class="stat-label">Sections</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-value" id="sizeCount">0</div>
+                                            <div class="stat-label">Characters</div>
+                                        </div>
+                                        <div class="stat-item">
+                                            <div class="stat-value" id="linesCount">0</div>
+                                            <div class="stat-label">Lines</div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                                        <button class="btn btn-primary" id="downloadEnhancedBtn">
+                                            <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                                <path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"/>
+                                            </svg>
+                                            Download AI Markdown
+                                        </button>
+                                        <button class="btn" id="downloadRawBtn">
+                                            Download Raw Markdown
+                                        </button>
+                                        <button class="btn" id="downloadChartsBtn">
+                                            Download Diagrams
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="errorSection" style="display: none; margin-top: 24px;">
+                                    <div class="flash flash-error" id="errorMessage"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="Layout-sidebar">
+                        <div class="Box">
+                            <div class="Box-header">
+                                <h3 class="Box-title">About</h3>
+                            </div>
+                            <div class="Box-body">
+                                <p style="margin-bottom: 16px;">Transform any documentation into AI-optimized markdown</p>
+                                
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+                                    <span class="Label Label--success">Universal</span>
+                                    <span class="Label Label--success">AI-Powered</span>
+                                    <span class="Label Label--success">OpenRouter</span>
+                                </div>
+
+                                <div style="font-size: 12px; color: var(--color-fg-muted);">
+                                    <div style="margin-bottom: 8px;">
+                                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                                            <path d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/>
+                                        </svg>
+                                        Works with OpenAPI, GitBook, Docusaurus
+                                    </div>
+                                    <div style="margin-bottom: 8px;">
+                                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M1.5 2.75a.25.25 0 01.25-.25h12.5a.25.25 0 01.25.25v8.5a.25.25 0 01-.25.25h-6.5a.75.75 0 00-.53.22L4.5 14.44v-2.19a.75.75 0 00-.75-.75h-2a.25.25 0 01-.25-.25v-8.5zM1.75 1A1.75 1.75 0 000 2.75v8.5C0 12.216.784 13 1.75 13H3v1.543a1.457 1.457 0 002.487 1.03L8.061 13h6.189A1.75 1.75 0 0016 11.25v-8.5A1.75 1.75 0 0014.25 1H1.75z"/>
+                                        </svg>
+                                        AI optimizes for LLM agents
+                                    </div>
+                                    <div>
+                                        <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                            <path d="M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z"/>
+                                        </svg>
+                                        URL parameter support
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Architecture Flow -->
+            <div class="tab-content" id="flow-tab">
+                <div class="Box">
+                    <div class="Box-header">
+                        <h3 class="Box-title">System Architecture & Flow Diagrams</h3>
+                    </div>
+                    <div class="Box-body">
+                        <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                            <button class="btn btn-default" onclick="showDiagram('user')">User Flow</button>
+                            <button class="btn btn-default" onclick="showDiagram('technical')">Technical Architecture</button>
+                            <button class="btn btn-default" onclick="showDiagram('features')">Features Overview</button>
+                            <button class="btn btn-primary" onclick="downloadMermaid()">
+                                <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M7.47 10.78a.75.75 0 001.06 0l3.75-3.75a.75.75 0 00-1.06-1.06L8.75 8.44V1.75a.75.75 0 00-1.5 0v6.69L4.78 5.97a.75.75 0 00-1.06 1.06l3.75 3.75zM3.75 13a.75.75 0 000 1.5h8.5a.75.75 0 000-1.5h-8.5z"/>
+                                </svg>
+                                Download Diagrams
+                            </button>
+                            <button class="btn btn-default" onclick="showRegenerateDiagramsDialog()">
+                                <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M1.705 8.005a.75.75 0 01.834.656 5.5 5.5 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.002 7.002 0 011.05 8.84a.75.75 0 01.656-.834ZM8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.002 7.002 0 0114.95 7.16a.75.75 0 01-1.49.178A5.5 5.5 0 008 2.5Z"/>
+                                </svg>
+                                Re-generate Charts with AI
+                            </button>
+                        </div>
+
+                        <div class="mermaid-container">
+                            <div id="userFlowDiagram" class="mermaid">graph TD
+A[Awaiting results]</div>
+
+                            <div id="technicalFlowDiagram" class="mermaid" style="display: none;">graph TD
+B[Awaiting results]</div>
+
+                            <div id="featuresFlowDiagram" class="mermaid" style="display: none;">graph TD
+C[Awaiting results]</div>
+                        </div>
+
+                        <div class="code-block" style="margin-top: 16px;">
+                            <pre id="mermaidCode" style="margin: 0;">Select a diagram above to view its Mermaid code</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: Models -->
+            <div class="tab-content" id="models-tab">
+                <div class="Box">
+                    <div class="Box-header">
+                        <h3 class="Box-title">Available AI Models</h3>
+                    </div>
+                    <div class="Box-body">
+                        <div id="modelsList">
+                            <div class="blankslate">
+                                <svg class="octicon blankslate-icon" width="24" height="24" viewBox="0 0 16 16">
+                                    <path d="M1.5 2.75a.25.25 0 01.25-.25h8.5a.25.25 0 01.25.25v5.5a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-5.5zm.25-1.75A1.75 1.75 0 000 2.75v5.5C0 9.216.784 10 1.75 10h8.5A1.75 1.75 0 0012 8.25v-5.5A1.75 1.75 0 0010.25 1h-8.5zM3.5 6.25a.75.75 0 01.75-.75h3a.75.75 0 010 1.5h-3a.75.75 0 01-.75-.75z"/>
+                                    <path d="M13.25 10a.75.75 0 01.75.75v2.5a.25.25 0 01-.25.25h-2.5a.75.75 0 010-1.5h1.25v-1.25a.75.75 0 01.75-.75z"/>
+                                </svg>
+                                <h3>Loading models...</h3>
+                                <p>Fetching available models from OpenAI and OpenRouter</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: History -->
+            <div class="tab-content" id="history-tab">
+                <div class="Box">
+                    <div class="Box-header">
+                        <h3 class="Box-title">Scraping History</h3>
+                    </div>
+                    <div class="Box-body">
+                        <div class="TimelineItem">
+                            <div class="TimelineItem-badge TimelineItem-badge--success">
+                                <svg class="octicon" width="16" height="16" viewBox="0 0 16 16">
+                                    <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>
+                                </svg>
+                            </div>
+                            <div class="TimelineItem-body">
+                                <strong>WirexPayChain API Documentation</strong><br>
+                                <span style="color: var(--color-fg-muted);">20 sections • 30KB • qwen/qwen3-coder:free via OpenRouter</span><br>
+                                <span style="color: var(--color-fg-muted); font-size: 12px;">2 minutes ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: false,
+            securityLevel: 'loose',
+            logLevel: 'error',
+            theme: 'neutral',
+            themeVariables: {
+                primaryColor: '#f6f8fa',
+                primaryTextColor: '#1f2328',
+                primaryBorderColor: '#d1d9e0',
+                lineColor: '#d1d9e0',
+                secondaryColor: '#f6f8fa',
+                tertiaryColor: '#f6f8fa',
+                background: '#ffffff',
+                mainBkg: '#f6f8fa',
+                secondBkg: '#ffffff',
+                tertiaryBkg: '#f6f8fa'
+            }
+        });
+        // Mermaid helpers: sanitize, validate, and render with safe fallbacks
+        function decodeHtmlEntities(str) {
+            try { const txt = document.createElement('textarea'); txt.innerHTML = str; return txt.value; } catch (_) { return str; }
+        }
+        function sanitizeMermaid(code) {
+            try {
+                if (!code) return 'graph TD\nA[Empty]-->B[Diagram]';
+                let c = String(code);
+                c = decodeHtmlEntities(c);
+                c = c.trim();
+                // Strip markdown fences if present
+                c = c.replace(/^```mermaid\s*/i, '').replace(/```\s*$/i, '');
+                // Normalize line endings and tabs
+                c = c.replace(/\r/g, '').replace(/\t/g, '    ');
+                // Normalize HTML entities if any remain
+                c = c.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&');
+                // Ensure a valid directive at top
+                const directives = ['graph ', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'stateDiagram-v2', 'erDiagram', 'gantt', 'pie'];
+                const startsValid = directives.some(d => c.startsWith(d));
+                if (!startsValid) {
+                    // Default to graph TD, preserving content as comments
+                    const commented = c.split('\n').map(l => '%% ' + l).join('\n');
+                    c = 'graph TD\nA[Mermaid Diagram]\n%% Auto-sanitized\n' + commented;
+                }
+                // Quick fix for graph arrows
+                if (c.startsWith('graph') || c.startsWith('flowchart')) {
+                    c = c.replace(/([^\-])\>(?!=)/g, '$1'); // remove stray ">"
+                    c = c.replace(/\s->\s/g, ' --> ');
+                }
+                return c;
+            } catch (e) {
+                console.warn('sanitizeMermaid error:', e);
+                return 'graph TD\nA[Error]-->B[Sanitized]';
+            }
+        }
+
+        function validateMermaid(code) {
+            try {
+                // Some builds expose mermaid.parse; fallback to mermaid.mermaidAPI.parse if available
+                if (typeof mermaid.parse === 'function') {
+                    mermaid.parse(code);
+                } else if (mermaid.mermaidAPI && typeof mermaid.mermaidAPI.parse === 'function') {
+                    mermaid.mermaidAPI.parse(code);
+                }
+                return true;
+            } catch (e) {
+                console.warn('Mermaid parse failed:', e);
+                return false;
+            }
+        }
+
+        async function renderMermaidNodes(selector = '.mermaid') {
+            if (typeof window.mermaid === 'undefined') return;
+            const nodes = document.querySelectorAll(selector);
+            for (const node of nodes) {
+                try {
+                    let code = node.textContent || '';
+                    let clean = sanitizeMermaid(code);
+                    if (!validateMermaid(clean)) {
+                        clean = 'graph TD\nA[Fallback]-->B[Diagram]';
+                    }
+                    const id = `mmd-${Date.now()}-${Math.floor(Math.random()*1e6)}`;
+                    if (mermaid && typeof mermaid.render === 'function') {
+                        try {
+                            const res = await mermaid.render(id, clean);
+                            node.innerHTML = (res && res.svg) ? res.svg : `<pre>${clean.replace(/</g,'&lt;')}</pre>`;
+                        } catch (e) {
+                            console.warn('mermaid.render failed, using run()', e);
+                            node.textContent = clean;
+                            try { if (mermaid && typeof mermaid.run === 'function') { await mermaid.run({ querySelector: selector }); } } catch (e2) { console.error('mermaid.run error:', e2); }
+                        }
+                    } else {
+                        node.textContent = clean;
+                        try { if (mermaid && typeof mermaid.run === 'function') { await mermaid.run({ querySelector: selector }); } } catch (e2) { console.error('mermaid.run error:', e2); }
+                    }
+                } catch (e) {
+                    console.error('renderMermaidNodes node error:', e);
+                    node.textContent = 'graph TD\nA[Fallback]-->B[Diagram]';
+                    try { if (mermaid && typeof mermaid.run === 'function') { await mermaid.run({ querySelector: selector }); } } catch (_) {}
+                }
+            }
+        }
+
+        // Initial render with per-node rendering
+        renderMermaidNodes('.mermaid');
+
+        // Tab functionality
+        document.querySelectorAll('.UnderlineNav-item').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove selected from all tabs
+                document.querySelectorAll('.UnderlineNav-item').forEach(t => t.classList.remove('selected'));
+                // Add selected to clicked tab
+                this.classList.add('selected');
+                
+                // Hide all tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show selected tab content
+                const tabName = this.getAttribute('data-tab');
+                document.getElementById(tabName + '-tab').classList.add('active');
+                
+                // Load models if models tab
+                if (tabName === 'models') {
+                    loadModels();
+                }
+            });
+        });
+
+        // Current session tracking
+        let currentSessionId = null;
+        let statusCheckInterval = null;
+
+        // Form submission
+        document.getElementById('scraperForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const model = document.getElementById('model').value;
+            const useAI = document.getElementById('useAI').checked;
+            
+            if (!url) return;
+            
+            if (useAI && !apiKey) {
+                showError('API key is required for AI enhancement');
+                return;
+            }
+            
+            // Reset UI
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('logs').innerHTML = '';
+            updateProgress(0);
+            
+            document.getElementById('scrapeBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url,
+                        api_key: apiKey,
+                        model,
+                        use_ai: useAI
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentSessionId = data.session_id;
+                statusCheckInterval = setInterval(checkStatus, 1000);
+                
+            } catch (error) {
+                showError(`Failed to start scraping: ${error.message}`);
+                document.getElementById('scrapeBtn').disabled = false;
+                document.getElementById('progressSection').style.display = 'none';
+            }
+        });
+
+        async function checkStatus() {
+            if (!currentSessionId) return;
+            
+            try {
+                const response = await fetch(`/api/status/${currentSessionId}`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: AbortSignal.timeout(10000) // 10 second timeout
+                });
+                if (!response.ok) {
+                    console.warn('Status check HTTP error', response.status);
+                    if (response.status === 404) {
+                        clearInterval(statusCheckInterval);
+                        statusCheckInterval = null;
+                        currentSessionId = null;
+                        showError('Session expired. Please start again.');
+                        document.getElementById('scrapeBtn').disabled = false;
+                        document.getElementById('progressSection').style.display = 'none';
+                    }
+                    // Don't stop on other errors, might be temporary
+                    return;
+                }
+                const data = await response.json();
+                updateProgress(data && typeof data.progress === 'number' ? data.progress : 0);
+                const logsDiv = document.getElementById('logs');
+                const logs = (data && Array.isArray(data.logs)) ? data.logs : [];
+                logsDiv.innerHTML = logs.map(log => `<div style="margin-bottom: 4px;">${log}</div>`).join('');
+                logsDiv.scrollTop = logsDiv.scrollHeight;
+                if (data.status === 'completed') {
+                    clearInterval(statusCheckInterval);
+                    statusCheckInterval = null;
+                    document.getElementById('scrapeBtn').disabled = false;
+                    if (data.result) {
+                        showResult(data.result);
+                    }
+                } else if (data.status === 'failed' || data.status === 'error') {
+                    clearInterval(statusCheckInterval);
+                    statusCheckInterval = null;
+                    document.getElementById('scrapeBtn').disabled = false;
+                    const errorMsg = data.error || 'Scraping failed. Check logs for details.';
+                    showError(errorMsg);
+                    // Add error details to logs
+                    if (data.logs && data.logs.length > 0) {
+                        const logsDiv = document.getElementById('logs');
+                        logsDiv.innerHTML += '<div style="color: var(--color-danger-fg); font-weight: bold; margin-top: 8px;">⚠️ Error occurred during scraping</div>';
+                    }
+                    document.getElementById('progressSection').style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Status check failed:', error);
+            }
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.width = `${percent}%`;
+        }
+
+        async function showResult(result) {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('sectionsCount').textContent = result.sections;
+            document.getElementById('sizeCount').textContent = formatNumber(result.size);
+            document.getElementById('linesCount').textContent = Math.round(result.size / 60);
+            
+            // Wire download buttons (raw/enhanced/charts)
+            const rawBtn = document.getElementById('downloadRawBtn');
+            const enhancedBtn = document.getElementById('downloadEnhancedBtn');
+            const chartsBtn = document.getElementById('downloadChartsBtn');
+            if (rawBtn) {
+                rawBtn.style.display = result.raw_filename ? 'inline-block' : 'none';
+                rawBtn.onclick = () => window.location.href = `/api/download_raw/${currentSessionId}`;
+            }
+            if (enhancedBtn) {
+                enhancedBtn.style.display = result.enhanced_filename ? 'inline-block' : 'none';
+                enhancedBtn.onclick = () => window.location.href = `/api/download_enhanced/${currentSessionId}`;
+            }
+            if (chartsBtn) {
+                chartsBtn.style.display = result.charts_filename ? 'inline-block' : 'none';
+                chartsBtn.onclick = () => window.location.href = `/api/download_charts/${currentSessionId}`;
+            }
+            // Load real diagrams from backend and render in Flow tab
+            try {
+                const resp = await fetch(`/api/diagrams/${currentSessionId}`);
+                const data = await resp.json();
+                const blocks = Array.isArray(data.diagrams) ? data.diagrams : [];
+                diagrams.user = blocks[0] || 'graph TD\nA[No diagram]';
+                diagrams.technical = blocks[1] || blocks[0] || 'graph TD\nA[No diagram]';
+                diagrams.features = blocks[2] || blocks[1] || blocks[0] || 'graph TD\nA[No diagram]';
+                document.getElementById('userFlowDiagram').textContent = diagrams.user;
+                document.getElementById('technicalFlowDiagram').textContent = diagrams.technical;
+                document.getElementById('featuresFlowDiagram').textContent = diagrams.features;
+                // Show the first diagram by default
+                showDiagram('user');
+            } catch (e) {
+                console.error('Failed to load diagrams:', e);
+            }
+
+            // (Removed duplicate loader block)
+        }
+
+        function showError(message) {
+            const errorSection = document.getElementById('errorSection');
+            errorSection.innerHTML = `
+                <div class="flash flash-error" style="margin-bottom: 16px;">
+                    <svg class="octicon" width="16" height="16" viewBox="0 0 16 16" style="margin-right: 8px; vertical-align: text-bottom;">
+                        <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm.75 4.75v3.5a.75.75 0 0 1-1.5 0v-3.5a.75.75 0 0 1 1.5 0ZM8 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+                    </svg>
+                    <strong>Error:</strong> <span id="errorMessage">${message}</span>
+                </div>
+                <details class="details-reset">
+                    <summary class="btn btn-sm">Troubleshooting Tips</summary>
+                    <div class="Box Box--condensed mt-2">
+                        <div class="Box-body">
+                            <ul style="margin: 0; padding-left: 20px;">
+                                <li>Check if the URL is accessible and returns HTML content</li>
+                                <li>For GitHub repos, use the main documentation URL (e.g., /docs or /wiki)</li>
+                                <li>Ensure your API key is valid if using AI features</li>
+                                <li>Try reducing the scraping depth for large sites</li>
+                                <li>Some sites may block automated scraping - try their API docs instead</li>
+                                <li>Check browser console (F12) for detailed error messages</li>
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+            `;
+            errorSection.style.display = 'block';
+        }
+
+        function formatNumber(num) {
+            if (num > 1000000) return (num / 1000000).toFixed(1) + 'M';
+            else if (num > 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toString();
+        }
+
+        // Load models
+        async function loadModels() {
+            try {
+                const apiKey = document.getElementById('apiKey').value || '';
+                const qp = new URLSearchParams();
+                if (apiKey) qp.set('api_key', apiKey);
+                const response = await fetch('/api/models?' + qp.toString());
+                const payload = await response.json();
+                const models = payload.models || [];
+                
+                document.getElementById('modelCount').textContent = models.length;
+                
+                const modelsList = document.getElementById('modelsList');
+                const free = models.filter(m => m.is_free);
+                const nonFree = models.filter(m => !m.is_free);
+
+                let html = '';
+                if (free.length) {
+                    html += `<h4 style="margin-top: 16px; margin-bottom: 8px;">Free (All Providers)</h4>`;
+                    html += '<div style="display: grid; gap: 8px;">';
+                    free.forEach(model => {
+                        const context = model.context_length ? ` • ${Math.round((model.context_length||0)/1000)}K context` : '';
+                        const ok = model.tested_ok ? ' • OK' : '';
+                        html += `
+                            <div style="padding: 8px; border: 1px solid var(--color-border-default); border-radius: 6px;">
+                                <strong>${model.name || model.id}</strong>
+                                <span style="color: var(--color-fg-muted); font-size: 12px;">${context}${ok}</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                // Group remaining by provider
+                const grouped = {};
+                nonFree.forEach(model => {
+                    const provider = model.provider || 'OpenRouter';
+                    if (!grouped[provider]) grouped[provider] = [];
+                    grouped[provider].push(model);
+                });
+                Object.entries(grouped).forEach(([provider, providerModels]) => {
+                    html += `<h4 style="margin-top: 16px; margin-bottom: 8px;">${provider}</h4>`;
+                    html += '<div style="display: grid; gap: 8px;">';
+                    providerModels.forEach(model => {
+                        const context = model.context_length ? ` • ${Math.round((model.context_length||0)/1000)}K context` : '';
+                        html += `
+                            <div style="padding: 8px; border: 1px solid var(--color-border-default); border-radius: 6px;">
+                                <strong>${model.name || model.id}</strong>
+                                <span style="color: var(--color-fg-muted); font-size: 12px;">${context}</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                });
+                modelsList.innerHTML = html;
+                
+                // Update model select with Free first
+                const modelSelect = document.getElementById('model');
+                modelSelect.innerHTML = '';
+                if (free.length) {
+                    const freeGroup = document.createElement('optgroup');
+                    freeGroup.label = 'Free (All Providers)';
+                    free.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        const context = model.context_length ? ` (${Math.round((model.context_length||0)/1000)}K)` : '';
+                        const ok = model.tested_ok ? ' [OK]' : '';
+                        option.textContent = (model.name || model.id) + context + ' [FREE]' + ok;
+                        option.dataset.provider = model.provider || 'OpenRouter';
+                        freeGroup.appendChild(option);
+                    });
+                    modelSelect.appendChild(freeGroup);
+                }
+                Object.entries(grouped).forEach(([provider, providerModels]) => {
+                    const group = document.createElement('optgroup');
+                    group.label = provider;
+                    
+                    providerModels.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        const context = model.context_length ? ` (${Math.round((model.context_length||0)/1000)}K)` : '';
+                        option.textContent = (model.name || model.id) + context;
+                        option.dataset.provider = provider;
+                        group.appendChild(option);
+                    });
+                    
+                    modelSelect.appendChild(group);
+                });
+                // Set default selection if provided
+                if (payload.default_model_id) {
+                    modelSelect.value = payload.default_model_id;
+                } else if (models.length) {
+                    modelSelect.value = models[0].id;
+                }
+                // Auto-test after loading models if a key exists
+                if ((document.getElementById('apiKey').value || '').trim()) {
+                    setTimeout(() => document.getElementById('testAiBtn').click(), 50);
+                }
+                
+            } catch (error) {
+                console.error('Failed to load models:', error);
+            }
+        }
+
+        // Reload models when API key changes (debounced)
+        {
+            let t;
+            const input = document.getElementById('apiKey');
+            input.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(loadModels, 500);
+            });
+        }
+
+        // Diagram functions (populated after scrape)
+        const diagrams = { user: '', technical: '', features: '' };
+
+        function showDiagram(type) {
+            document.getElementById('userFlowDiagram').style.display = type === 'user' ? 'block' : 'none';
+            document.getElementById('technicalFlowDiagram').style.display = type === 'technical' ? 'block' : 'none';
+            document.getElementById('featuresFlowDiagram').style.display = type === 'features' ? 'block' : 'none';
+
+            const sanitized = sanitizeMermaid(diagrams[type]);
+            document.getElementById('mermaidCode').textContent = sanitized;
+
+            // Update the shown diagram's innerText to sanitized version as well
+            const map = { user: 'userFlowDiagram', technical: 'technicalFlowDiagram', features: 'featuresFlowDiagram' };
+            const el = document.getElementById(map[type]);
+            if (el) el.textContent = sanitized;
+
+            // Re-render with per-node rendering
+            renderMermaidNodes('.mermaid');
+        }
+
+        function downloadMermaid() {
+            const content = `# Architecture & Flow Diagrams\n\nGenerated: ${new Date().toISOString()}\n\n## User Flow\n\n\`\`\`mermaid\n${sanitizeMermaid(diagrams.user)}\n\`\`\`\n\n## Technical Architecture\n\n\`\`\`mermaid\n${sanitizeMermaid(diagrams.technical)}\n\`\`\`\n\n## Features Overview\n\n\`\`\`mermaid\n${sanitizeMermaid(diagrams.features)}\n\`\`\``;
+
+            // Dynamic filename from entered URL
+            const urlInput = document.getElementById('url');
+            const src = (urlInput && urlInput.value) ? urlInput.value : 'docs';
+            let host = 'docs';
+            try { host = new URL(src).host.replace(/[:.]/g, '_'); } catch (_) {}
+            const ts = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const stamp = `${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}`;
+            const filename = `${host}__architecture_diagrams__${stamp}.md`;
+
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+        }
+
+        function showRegenerateDiagramsDialog() {
+            if (!currentSessionId) {
+                alert('Please scrape documentation first before regenerating diagrams.');
+                return;
+            }
+            
+            const apiKey = document.getElementById('apiKey').value || '';
+            const model = document.getElementById('model').value || 'openai/gpt-4o-mini';
+            
+            if (!apiKey) {
+                alert('Please enter an API key first.');
+                return;
+            }
+            
+            const regenerateBtn = event.target;
+            regenerateBtn.disabled = true;
+            regenerateBtn.innerHTML = '<svg class="octicon" width="16" height="16" viewBox="0 0 16 16"><path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" opacity=".5"/><path d="M8 4a4 4 0 0 0-3.86 5" stroke-width="2" stroke-linecap="round"/></svg> Regenerating...';
+            
+            regenerateDiagrams(apiKey, model).finally(() => {
+                regenerateBtn.disabled = false;
+                regenerateBtn.innerHTML = '<svg class="octicon" width="16" height="16" viewBox="0 0 16 16"><path d="M1.705 8.005a.75.75 0 01.834.656 5.5 5.5 0 009.592 2.97l-1.204-1.204a.25.25 0 01.177-.427h3.646a.25.25 0 01.25.25v3.646a.25.25 0 01-.427.177l-1.38-1.38A7.002 7.002 0 011.05 8.84a.75.75 0 01.656-.834ZM8 2.5a5.487 5.487 0 00-4.131 1.869l1.204 1.204A.25.25 0 014.896 6H1.25A.25.25 0 011 5.75V2.104a.25.25 0 01.427-.177l1.38 1.38A7.002 7.002 0 0114.95 7.16a.75.75 0 01-1.49.178A5.5 5.5 0 008 2.5Z"/></svg> Re-generate Charts with AI';
+            });
+        }
+        
+        async function regenerateDiagrams(apiKey, model) {
+            try {
+                const response = await fetch(`/api/regenerate-diagrams/${currentSessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: apiKey, model: model })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to regenerate diagrams');
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.diagrams) {
+                    // Update the global diagrams object
+                    diagrams.user = data.diagrams[0] || diagrams.user;
+                    diagrams.technical = data.diagrams[1] || diagrams.technical;
+                    diagrams.features = data.diagrams[2] || diagrams.features;
+                    
+                    // Update the currently shown diagram
+                    const activeBtn = document.querySelector('.btn-default:not([onclick*="download"]):not([onclick*="Regenerate"])');
+                    if (activeBtn) {
+                        const diagramType = activeBtn.textContent.includes('User') ? 'user' : 
+                                           activeBtn.textContent.includes('Technical') ? 'technical' : 'features';
+                        showDiagram(diagramType);
+                    }
+                    
+                    // Show success message
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'flash flash-success';
+                    msgDiv.textContent = 'Diagrams regenerated successfully!';
+                    msgDiv.style.position = 'fixed';
+                    msgDiv.style.top = '20px';
+                    msgDiv.style.right = '20px';
+                    msgDiv.style.zIndex = '1000';
+                    document.body.appendChild(msgDiv);
+                    setTimeout(() => msgDiv.remove(), 3000);
+                }
+            } catch (error) {
+                alert('Error regenerating diagrams: ' + error.message);
+            }
+        }
+
+        // Test AI button handler and auto-test hooks
+        document.getElementById('testAiBtn').addEventListener('click', async () => {
+            const resEl = document.getElementById('testAiResult');
+            const apiKey = (document.getElementById('apiKey').value || '').trim();
+            if (!/^sk-or-/.test(apiKey)) {
+                resEl.style.color = 'var(--color-fg-muted)';
+                resEl.textContent = 'Enter an OpenRouter key (sk-or-...) to test';
+                return;
+            }
+            resEl.textContent = 'Testing…';
+            try {
+                const modelSel = document.getElementById('model');
+                const model = modelSel.value;
+                const resp = await fetch('/api/test_ai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: apiKey, model })
+                });
+                const data = await resp.json();
+                if (data.ok) {
+                    resEl.style.color = 'var(--color-success-fg)';
+                    const sample = data.sample ? ` • ${data.sample}` : '';
+                    resEl.textContent = `Success (${data.provider})${sample}`;
+                } else {
+                    resEl.style.color = 'var(--color-danger-fg)';
+                    const err = data.error;
+                    let msg = 'Request failed';
+                    if (typeof err === 'string') {
+                        msg = err;
+                    } else if (err && typeof err === 'object') {
+                        if (err.error && err.error.message) msg = err.error.message;
+                        else if (err.message) msg = err.message;
+                        else msg = JSON.stringify(err);
+                    }
+                    const sc = (typeof data.status === 'number') ? ` (${data.status})` : '';
+                    resEl.textContent = `Failed${sc}: ${msg}`;
+                }
+            } catch (e) {
+                resEl.style.color = 'var(--color-danger-fg)';
+                resEl.textContent = 'Error running test';
+                console.error('Test AI error:', e);
+            }
+        });
+
+        // Auto-test on model/key change, with debounce for key
+        document.getElementById('model').addEventListener('change', () => document.getElementById('testAiBtn').click());
+        {
+            let t;
+            const input = document.getElementById('apiKey');
+            input.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(() => document.getElementById('testAiBtn').click(), 500);
+            });
+        }
+
+        // Load models on page load
+        loadModels();
+    </script>
+</body>
+</html>

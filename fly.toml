@@ -1,4 +1,4 @@
-app = "universal-docs-scraper"
+app = "universal-docs-scraper-eminmahrt"
 primary_region = "iad"
 
 [build]

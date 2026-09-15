@@ -1,0 +1,116 @@
+# NGINX Configuration Files to Fix HTTPS
+
+# 1. /etc/nginx/sites-available/docscraper.emino.app
+# This redirects docscraper.emino.app to docscrape.emino.app
+
+server {
+    listen 80;
+    server_name docscraper.emino.app;
+    return 301 https://docscrape.emino.app$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name docscraper.emino.app;
+    
+    # Use the existing docscrape certificate for now
+    ssl_certificate /etc/letsencrypt/live/docscrape.emino.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/docscrape.emino.app/privkey.pem;
+    
+    return 301 https://docscrape.emino.app$request_uri;
+}
+
+# 2. /etc/nginx/sites-available/mermaid.emino.app
+# This serves the same app on mermaid.emino.app
+
+server {
+    listen 80;
+    server_name mermaid.emino.app;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name mermaid.emino.app;
+    
+    # Will need to create certificate first:
+    # certbot certonly --nginx -d mermaid.emino.app --non-interactive --agree-tos --email admin@emino.app
+    
+    ssl_certificate /etc/letsencrypt/live/mermaid.emino.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mermaid.emino.app/privkey.pem;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300;
+    }
+}
+
+# 3. Update /etc/nginx/sites-available/docscrape.emino.app
+# Ensure it's properly configured
+
+server {
+    listen 80;
+    server_name docscrape.emino.app;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name docscrape.emino.app;
+
+    ssl_certificate /etc/letsencrypt/live/docscrape.emino.app/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/docscrape.emino.app/privkey.pem;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300;
+        proxy_connect_timeout 300;
+        proxy_send_timeout 300;
+    }
+}
+
+# COMMANDS TO RUN ON SERVER:
+
+# 1. Create SSL certificates for new domains
+sudo certbot certonly --nginx -d mermaid.emino.app --non-interactive --agree-tos --email admin@emino.app
+sudo certbot certonly --nginx -d docscraper.emino.app --non-interactive --agree-tos --email admin@emino.app
+
+# 2. Create nginx config files
+sudo nano /etc/nginx/sites-available/docscraper.emino.app
+# (paste the docscraper config above)
+
+sudo nano /etc/nginx/sites-available/mermaid.emino.app
+# (paste the mermaid config above)
+
+# 3. Update the docscrape.emino.app config
+sudo nano /etc/nginx/sites-available/docscrape.emino.app
+# (update with the config above)
+
+# 4. Enable the sites
+sudo ln -sf /etc/nginx/sites-available/docscraper.emino.app /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/mermaid.emino.app /etc/nginx/sites-enabled/
+
+# 5. Test and reload nginx
+sudo nginx -t
+sudo systemctl reload nginx
+
+# 6. Test the certificates are working
+curl -I https://docscrape.emino.app
+curl -I https://docscraper.emino.app  
+curl -I https://mermaid.emino.app
