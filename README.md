@@ -1,198 +1,185 @@
-# Universal Documentation Scraper 📚
+# Universal Documentation Scraper
 
-A powerful and flexible web scraper designed to convert any documentation website into clean, organized Markdown files. Perfect for offline reading, archiving, or processing documentation with LLMs.
+Turns a documentation website into clean Markdown files, one per page, plus one combined file.
+Runs as a Python CLI, a Flask web app, or a Streamlit app.
+For people who want docs offline, archived, or ready to feed to an LLM.
 
-## 🌟 Features
+## Logs
 
-- **Universal Compatibility**: Works with most documentation platforms (Readme.com, GitBook, Docusaurus, MkDocs, Sphinx, etc.)
-- **Smart Content Extraction**: Automatically identifies and extracts main content while removing navigation, ads, and clutter
-- **Sitemap Support**: Automatically discovers pages via sitemap.xml or robots.txt
-- **Intelligent Crawling**: Falls back to crawling when no sitemap is available
-- **Rate Limiting**: Respects server resources with configurable delays
-- **Clean Markdown Output**: Converts HTML to well-formatted Markdown with proper structure
-- **Metadata Preservation**: Stores source URL, title, and scraping timestamp
-- **Progress Logging**: Real-time progress updates and detailed logging
-- **Web Interface**: Simple web UI for easy scraping (see `frontend/` directory)
+- [CHANGELOG.md](CHANGELOG.md): release notes per commit
+- [PROMPTLOG.md](PROMPTLOG.md): rules and prompts from emino
 
-## 🚀 Quick Start
+## Status
 
-### Installation
+| Field | Value |
+|---|---|
+| Version | v0.1.0 |
+| Date | 2026-10-14 |
+| Updated by | hermes-agent for emino |
+| Default branch HEAD | `2d8487a` (main) |
+| Deployment | Configs for Fly.io (`fly.toml`, app `universal-docs-scraper`, region `iad`), Railway (`railway.json`), Render (`render.yaml`) and Docker (`Dockerfile`, port 8080). No live URL is documented in the repo. |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    CLI["scraper/universal_scraper.py CLI"] --> S["UniversalDocsScraper class"]
+    WEB["frontend/app.py Flask app"] --> S
+    UI["frontend/templates/index.html"] -->|"fetch /scrape /status /cancel"| WEB
+    ST["streamlit_app.py"] --> S
+    S -->|"GET robots.txt and sitemap.xml"| SITE["Target docs website"]
+    S -->|"crawl fallback, GET pages"| SITE
+    S -->|"BeautifulSoup + markdownify"| OUT["Output dir: page .md files, scraping_summary.json, scraper.log, COMBINED_DOCUMENTATION.md"]
+    WEB -->|"zip in memory"| ZIP["Download .zip"]
+    ST -->|"zip in memory"| ZIP
+```
+
+How it works, from `scraper/universal_scraper.py`:
+
+1. URL discovery: reads `Sitemap:` lines from `robots.txt`, then tries `/sitemap.xml`, `/sitemap_index.xml`, `/sitemap-index.xml`, `/sitemaps/sitemap.xml`. Falls back to crawling from the base URL if no sitemap is found.
+2. Content extraction: tries platform selectors (Readme.com, GitBook, Docusaurus, MkDocs, Sphinx, then generic `main`, `article`, `#content` and similar). Strips navigation, sidebars and footers via `remove_selectors`.
+3. Markdown conversion: `markdownify`, with YAML frontmatter holding `title`, `source_url` and scrape time.
+4. Rate limiting: default 1.0 s between requests, `max_pages` default 1000 (CLI) or 100 (web UIs).
+5. Summary and combined file: writes `scraping_summary.json` and `COMBINED_DOCUMENTATION.md`.
+
+## User flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant W as Flask web app
+    participant S as UniversalDocsScraper
+    participant D as Docs website
+    U->>W: POST /scrape with url, rate_limit, max_pages
+    W-->>U: session_id
+    W->>S: background thread run_scraper
+    S->>D: robots.txt, sitemaps, or crawl
+    S->>D: GET each page, rate limited
+    S->>S: write .md files, summary, combined file
+    loop until completed or error
+        U->>W: GET /status/session_id
+        W-->>U: status, progress, last 50 log lines
+    end
+    U->>W: GET /download/session_id
+    W-->>U: zip of the output directory
+```
+
+## Components
+
+| Component | Path | Role |
+|---|---|---|
+| Scraper core and CLI | `scraper/universal_scraper.py` | `UniversalDocsScraper` class: discovery, extraction, Markdown output, summary, combined file. `main()` is the argparse CLI. |
+| Flask web app | `frontend/app.py` | HTTP API and UI host. Runs scrapes in background threads, keeps sessions in memory. |
+| Web UI | `frontend/templates/index.html` | Single page form. Calls `/scrape`, `/status/<id>`, `/cancel/<id>`. |
+| Flask smoke server | `frontend/test_server.py` | Minimal Flask app with one `/` route for deploy checks. |
+| Streamlit app | `streamlit_app.py` | Alternative UI: form, live progress, zip download button. |
+| Container | `Dockerfile` | python:3.11-slim, installs requirements, runs `python app.py` in `frontend/`, exposes 8080. |
+| Deploy configs | `fly.toml`, `railway.json`, `render.yaml`, `deployment.md` | Fly.io, Railway, Render setups and a deploy guide. |
+| Example analysis | `analysis/striga_analysis.md` | Analysis of the Striga API docs, made with this scraper. |
+
+## API / Endpoints
+
+### HTTP (Flask, `frontend/app.py`)
+
+No auth on any route. Sessions live in process memory.
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| GET | `/` | none | Serves `index.html` |
+| POST | `/scrape` | none | JSON body `url` (required), `rate_limit` (default 1.0), `max_pages` (default 100). Starts a background scrape, returns `session_id`. |
+| GET | `/status/<session_id>` | none | Status, progress, counts, last 50 log entries, error |
+| GET | `/download/<session_id>` | none | Zip of the output dir. 400 if not completed. |
+| POST | `/cancel/<session_id>` | none | Marks the session cancelled. The loop stops at the next page. |
+
+`frontend/test_server.py` exposes only `GET /`.
+
+### CLI (`scraper/universal_scraper.py`)
+
+| Argument | Default | Purpose |
+|---|---|---|
+| `url` (positional) | required | Base URL of the docs site |
+| `-o`, `--output` | `scraped_docs` | Output directory |
+| `-r`, `--rate-limit` | `1.0` | Seconds between requests |
+| `-m`, `--max-pages` | `1000` | Maximum pages to scrape |
+| `--urls` | none | Scrape only these URLs, skip discovery |
+
+## Run
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/universal-docs-scraper.git
-cd universal-docs-scraper
-
-# Install dependencies
 pip install -r requirements.txt
-```
 
-### Basic Usage
-
-```bash
-# Scrape a documentation site
+# CLI
 python scraper/universal_scraper.py https://docs.example.com
-
-# Specify output directory
-python scraper/universal_scraper.py https://docs.example.com -o my_docs
-
-# Adjust rate limiting (seconds between requests)
-python scraper/universal_scraper.py https://docs.example.com -r 2.0
-
-# Limit maximum pages
-python scraper/universal_scraper.py https://docs.example.com -m 100
-
-# Scrape specific URLs only
+python scraper/universal_scraper.py https://docs.example.com -o my_docs -r 2.0 -m 100
 python scraper/universal_scraper.py https://docs.example.com --urls https://docs.example.com/guide https://docs.example.com/api
+
+# Flask web app, then open http://localhost:8080
+cd frontend && python app.py
+
+# Streamlit app
+streamlit run streamlit_app.py
+
+# Docker
+docker build -t universal-docs-scraper .
+docker run -p 8080:8080 universal-docs-scraper
 ```
 
-### Web Interface
+Env vars read by the code:
 
-For a user-friendly experience, use the web interface:
+| Name | Where | Purpose |
+|---|---|---|
+| `PORT` | `frontend/app.py` | Flask listen port, default 8080 |
 
-```bash
-cd frontend
-python app.py
-# Open http://localhost:5000 in your browser
-```
+Dependencies (`requirements.txt`): requests, beautifulsoup4, markdownify, lxml, flask, streamlit.
 
-## 📁 Output Structure
+Tests: no test suite in the repo.
 
-The scraper creates an output directory with:
-- Markdown files for each scraped page
-- `scraping_summary.json` with statistics
+## Output structure
+
+The output directory contains:
+
+- One Markdown file per scraped page, with YAML frontmatter (`title`, `source_url`, scrape time) and the page title as H1
+- `COMBINED_DOCUMENTATION.md` with all pages in one file
+- `scraping_summary.json` with base URL, URL counts, success and failure counts, rate limit, max pages
 - `scraper.log` with detailed logs
 
-Each Markdown file includes:
-- YAML frontmatter with metadata
-- Original page title
-- Clean, formatted content
+Scraped output dirs (`scraped_*/`, `striga_docs/`) are gitignored. The scraped Striga docs are not in the repo, only the analysis.
 
-## 🏗️ Project Structure
+## Configuration
 
-```
-universal-docs-scraper/
-├── scraper/
-│   └── universal_scraper.py    # Main scraper script
-├── frontend/
-│   ├── app.py                  # Flask web application
-│   ├── templates/
-│   └── static/
-├── docs/
-│   └── striga_docs/           # Example: Scraped Striga documentation
-├── analysis/
-│   └── striga_analysis.md     # Example: Analysis of Striga docs
-├── requirements.txt
-├── LICENSE
-└── README.md
-```
-
-## 📊 Example: Striga Documentation Analysis
-
-This repository includes a complete scrape of the Striga API documentation (as of January 2025) along with a detailed analysis of authentication requirements and user flows. See `analysis/striga_analysis.md` for insights on building frictionless Bitcoin wallets with fiat off-ramps.
-
-### Key Findings from Striga Analysis:
-- Comprehensive user story mapping with authentication requirements
-- Identification of lowest-friction paths for Bitcoin → EUR → Card flows
-- Complete API endpoint categorization
-- KYC tier requirements and limitations
-
-## 🛠️ How It Works
-
-1. **URL Discovery**:
-   - First attempts to find sitemap.xml via common locations and robots.txt
-   - Falls back to intelligent crawling if no sitemap exists
-
-2. **Content Extraction**:
-   - Uses platform-specific selectors for major documentation systems
-   - Removes navigation, sidebars, footers automatically
-   - Falls back to generic content detection
-
-3. **Markdown Conversion**:
-   - Preserves formatting, code blocks, and structure
-   - Cleans up excessive whitespace
-   - Maintains readability
-
-4. **Rate Limiting**:
-   - Default 1-second delay between requests
-   - Configurable to respect server resources
-
-## 🔧 Configuration
-
-### Content Selectors
-
-The scraper uses intelligent defaults but can be customized by modifying the `content_selectors` list in `universal_scraper.py`:
+Edit the lists in `scraper/universal_scraper.py`:
 
 ```python
 self.content_selectors = [
     '.your-custom-selector',
     '#specific-content-id',
-    # ... add your selectors
 ]
-```
 
-### Remove Selectors
-
-Customize elements to remove by modifying `remove_selectors`:
-
-```python
 self.remove_selectors = [
     '.ads',
     '.popup',
-    # ... elements to remove
 ]
 ```
 
-## 🤝 Contributing
+## Example: Striga documentation analysis
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+`analysis/striga_analysis.md` holds an analysis of the Striga API docs: user stories with auth needs, low-friction Bitcoin to EUR to card paths, endpoint categories, KYC tiers.
 
-### Areas for Contribution:
-- Add support for more documentation platforms
-- Improve content extraction algorithms
-- Add authentication support for private docs
-- Enhance the web interface
-- Add export formats (PDF, EPUB, etc.)
+## Roadmap
 
-## 📄 License
+| Item | State |
+|---|---|
+| Core scraping | done |
+| Platform selectors | done |
+| Flask and Streamlit UI | done |
+| Combined Markdown file | done |
+| Auth for private docs | planned |
+| PDF export | planned |
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Disclaimer
 
-## 🙏 Acknowledgments
+Respect each site's terms of service and robots.txt. Meant for personal use, archiving and research.
 
-- Originally created to scrape and analyze Striga API documentation
-- Inspired by the need for offline documentation access
-- Built with love for the developer community
+## License
 
-## ⚠️ Disclaimer
-
-Please respect website terms of service and robots.txt when using this scraper. This tool is intended for personal use, archiving, and research purposes. Always check the website's terms before scraping.
-
-## 📈 Scraping Statistics
-
-When the scraper completes, it generates a `scraping_summary.json` file with statistics:
-
-```json
-{
-  "base_url": "https://docs.striga.com",
-  "total_urls": 160,
-  "successful_scrapes": 156,
-  "failed_scrapes": 4,
-  "scraped_at": "2025-01-18T10:30:00",
-  "rate_limit": 1.0,
-  "max_pages": 1000
-}
-```
-
-## 🚦 Status
-
-- ✅ Core scraping functionality
-- ✅ Universal platform support
-- ✅ Web interface
-- ✅ Striga documentation example
-- 🔄 Authentication support (planned)
-- 🔄 PDF export (planned)
-
----
-
-**Created with ❤️ by [Your Name] | Generated: January 2025**
+MIT. See [LICENSE](LICENSE).
